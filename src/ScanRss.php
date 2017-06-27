@@ -2,9 +2,12 @@
 
 namespace nmanley\ScanRss;
 
+/**
+ * Class ScanRss
+ * @package nmanley\ScanRss
+ */
 class ScanRss
 {
-    // Declaring Vars
     protected $feeds = [];
     protected $settings = [];
     protected $feedData = [];
@@ -14,6 +17,9 @@ class ScanRss
     protected $endTime = 0;
     protected $status = 0;
 
+    /**
+     * ScanRss constructor.
+     */
     function __construct()
     {
         $this->startTime = time();
@@ -35,11 +41,20 @@ class ScanRss
         }
     }
 
+    /**
+     * @param string $sFeedUrl
+     * @return bool
+     */
     public function addFeed($sFeedUrl)
     {
         return (bool)($this->feeds[] = $sFeedUrl);
     }
 
+    /**
+     * @param string $sKey
+     * @param * $sValue
+     * @return bool|null
+     */
     public function setConfig($sKey, $sValue)
     {
         if (key_exists($sKey, $this->settings)) {
@@ -49,6 +64,9 @@ class ScanRss
         return null;
     }
 
+    /**
+     * @param int $status
+     */
     public function writeHistory($status)
     {
         Switch ($status) {
@@ -76,6 +94,10 @@ class ScanRss
         return;
     }
 
+    /**
+     * @param null|string $url
+     * @return array|int
+     */
     public function readFeed($url = null)
     {
         $ret = [];
@@ -106,6 +128,10 @@ class ScanRss
         return $this->feedData;
     }
 
+    /**
+     * @param * $data
+     * @return array|int
+     */
     public function parseFeed($data = null)
     {
         if (!$data) {
@@ -143,6 +169,9 @@ class ScanRss
         return $this->parsed;
     }
 
+    /**
+     * @return array|bool
+     */
     public function getHistory()
     {
         $this->history = [];
@@ -153,6 +182,10 @@ class ScanRss
         return $this->history;
     }
 
+    /**
+     * @param * $data
+     * @return bool
+     */
     public function saveHistory($data)
     {
         if (is_array($data)) {
@@ -168,6 +201,9 @@ class ScanRss
         }
     }
 
+    /**
+     * @return int
+     */
     public function getTorrents()
     {
         if (isset($this->parsed) && is_array($this->parsed) && sizeof($this->parsed) > 0) {
