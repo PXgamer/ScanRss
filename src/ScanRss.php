@@ -1,5 +1,7 @@
 <?php
 
+namespace nmanley\ScanRss;
+
 class ScanRss
 {
     // Declaring Vars
