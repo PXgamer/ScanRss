@@ -5,15 +5,15 @@ namespace nmanley\ScanRss;
 class ScanRss
 {
     // Declaring Vars
-    var $feeds = array();
-    var $settings = array();
-    var $feedData = array();
-    var $history = array();
-    var $parsed = array();
+    var $feeds = [];
+    var $settings = [];
+    var $feedData = [];
+    var $history = [];
+    var $parsed = [];
     var $torCount = 0;
     var $endTime = 0;
 
-    function construct($startTime)
+    function __construct()
     {
         // Set Feeds
         $this->feeds[] = "http://showrss.info/rss.php?user_id=123456&hd=null&proper=0&magnets=false";
@@ -64,12 +64,12 @@ class ScanRss
                 $msg = "Unable to write to directory : " . $this->settings['file_location'];
                 break;
             default:
-                (string)$msg = "Unable to determine the Pass/Fail status of the Script, plese fire you're programmer. Status: " . $status;
+                $msg = "Unable to determine the Pass/Fail status of the Script, plese fire you're programmer. Status: " . $status;
                 break;
         }
 
-        (string)$date = date('Y-m-d H:i:s', time());
-        (string)$form = "[ " . $date . " ] - " . $msg . "\r\n";
+        $date = (string)date('Y-m-d H:i:s', time());
+        $form = "[ " . $date . " ] - " . $msg . "\r\n";
 
         file_put_contents($this->settings['history_log'], $form, FILE_APPEND);
         return;
@@ -77,7 +77,7 @@ class ScanRss
 
     function read_feed($url = null)
     {
-        $ret = array();
+        $ret = [];
 
         if (!$url) {
             $url = $this->feeds;
@@ -105,7 +105,7 @@ class ScanRss
 
     function parse_feed($data = null)
     {
-        $ret = array();
+        $ret = [];
 
         if (!$data) {
             $data = $this->feedData;
@@ -147,7 +147,7 @@ class ScanRss
         if (is_file($this->settings['file_indexes']) && file_exists($this->settings['file_indexes']) && is_readable($this->settings['file_indexes'])) {
             return file($this->settings['file_indexes'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         } else {
-            return array();
+            return [];
         } // Empty array to please
     }
 
@@ -208,6 +208,3 @@ class ScanRss
         }
     }
 }
-
-$scan = new ScanRss();
-$scan->construct($start);
