@@ -69,6 +69,8 @@ class ScanRss
      */
     public function writeHistory($status)
     {
+        $this->endTime = time() - $this->startTime;
+
         Switch ($status) {
             case 0:
                 $msg = "Failed To Run Script.";
