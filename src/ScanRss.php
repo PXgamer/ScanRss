@@ -5,24 +5,23 @@ namespace nmanley\ScanRss;
 class ScanRss
 {
     // Declaring Vars
-    var $feeds = [];
-    var $settings = [];
-    var $feedData = [];
-    var $history = [];
-    var $parsed = [];
-    var $torCount = 0;
-    var $endTime = 0;
+    protected $feeds = [];
+    protected $settings = [];
+    protected $feedData = [];
+    protected $history = [];
+    protected $parsed = [];
+    protected $torCount = 0;
+    protected $endTime = 0;
 
     function __construct()
     {
-        // Set Feeds
-        $this->feeds[] = "http://showrss.info/rss.php?user_id=123456&hd=null&proper=0&magnets=false";
+        $this->startTime = time();
 
-        // Settings
-        $this->settings['log_file_name'] = __DIR__ . "/\downloaded.log";
-        $this->settings['file_indexes'] = __DIR__ . "/\indexes.log";
-        $this->settings['history_log'] = __DIR__ . "/\history.log";
-        $this->settings['file_location'] = __DIR__ . "/shares/";
+        // Default config setup
+        $this->settings['log_file_name'] = "downloaded.log";
+        $this->settings['file_indexes'] = "indexes.log";
+        $this->settings['history_log'] = "history.log";
+        $this->settings['file_location'] = "shares/";
 
         // Checking if a Few Things
         if (!file_exists($this->settings['file_location'])) {
@@ -30,32 +29,43 @@ class ScanRss
         }
 
         if (!is_writeable($this->settings['file_location'])) {
-            $this->write_history(3);
+            $this->writeHistory(3);
             exit;
         }
 
         // Starting to work
-        $this->feedData = $this->read_feed();
-        $this->history = $this->get_history();
-        $this->parsed = $this->parse_feed();
+        $this->feedData = $this->readFeed();
+        $this->history = $this->getHistory();
+        $this->parsed = $this->parseFeed();
 
         // Getting Torrents
-        $status = $this->get_torrents();
+        $status = $this->getTorrents();
 
-        $this->endTime = microtime(true) - $startTime;
-
-        $this->write_history($status);
-
+        $this->writeHistory($status);
     }
 
-    function write_history($status)
+    public function addFeed($sFeedUrl)
+    {
+        return (bool)($this->feeds[] = $sFeedUrl);
+    }
+
+    public function setConfig($sKey, $sValue)
+    {
+        if (key_exists($sKey, $this->settings)) {
+            return (bool)($this->settings[$sKey] = $sValue);
+        }
+
+        return null;
+    }
+
+    public function writeHistory($status)
     {
         Switch ($status) {
             case 0:
                 $msg = "Failed To Run Script.";
                 break;
             case 1:
-                $msg = "Script Ran Successfully.[ " . (string)$this->torCount . " ] New. [ Time ] . " . $this->endTime . " seconds.";
+                $msg = "Script Ran Successfully.[ " . $this->torCount . " ] New. [ Time ] . " . $this->endTime . " seconds.";
                 break;
             case 2:
                 $msg = "Script Ran Successfully, but no new torrents were downloaded. [ Time ] . " . $this->endTime . " seconds.";
@@ -75,7 +85,7 @@ class ScanRss
         return;
     }
 
-    function read_feed($url = null)
+    public function readFeed($url = null)
     {
         $ret = [];
 
@@ -103,7 +113,7 @@ class ScanRss
         return $ret;
     }
 
-    function parse_feed($data = null)
+    public function parseFeed($data = null)
     {
         $ret = [];
 
@@ -141,17 +151,17 @@ class ScanRss
         return $ret;
     }
 
-    function get_history()
+    public function getHistory()
     {
 
         if (is_file($this->settings['file_indexes']) && file_exists($this->settings['file_indexes']) && is_readable($this->settings['file_indexes'])) {
             return file($this->settings['file_indexes'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         } else {
             return [];
-        } // Empty array to please
+        }
     }
 
-    function save_history($data)
+    public function saveHistory($data)
     {
         if (is_array($data)) {
             $date = (string)date('Y-m-d H:i:s', time());
@@ -166,7 +176,7 @@ class ScanRss
         }
     }
 
-    function get_torrents()
+    public function getTorrents()
     {
         if (isset($this->parsed) && is_array($this->parsed) && sizeof($this->parsed) > 0) {
             foreach ($this->parsed as $item) {
@@ -191,8 +201,8 @@ class ScanRss
                             unlink($this->settings['file_location'] . $item['file']);
                         }
 
-                        $this->save_history(array('file' => $item['file']));
-                        $this->save_history((string)$item['hash']);
+                        $this->saveHistory(array('file' => $item['file']));
+                        $this->saveHistory((string)$item['hash']);
 
 
                     }
