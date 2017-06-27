@@ -12,6 +12,7 @@ class ScanRss
     protected $parsed = [];
     protected $torCount = 0;
     protected $endTime = 0;
+    protected $status = 0;
 
     function __construct()
     {
@@ -32,16 +33,6 @@ class ScanRss
             $this->writeHistory(3);
             exit;
         }
-
-        // Starting to work
-        $this->feedData = $this->readFeed();
-        $this->history = $this->getHistory();
-        $this->parsed = $this->parseFeed();
-
-        // Getting Torrents
-        $status = $this->getTorrents();
-
-        $this->writeHistory($status);
     }
 
     public function addFeed($sFeedUrl)
@@ -110,13 +101,13 @@ class ScanRss
                 curl_close($ch);
             }
         }
-        return $ret;
+
+        $this->feedData = $ret;
+        return $this->feedData;
     }
 
     public function parseFeed($data = null)
     {
-        $ret = [];
-
         if (!$data) {
             $data = $this->feedData;
 
@@ -138,7 +129,7 @@ class ScanRss
                         $i->title = preg_replace('/[^A-Za-z0-9_\-.\s]/', '_', $i->title);
 
 
-                        $ret[(string)$i->guid] = array(
+                        $this->parsed[(string)$i->guid] = array(
                             'link' => $i->link,
                             'file' => $i->title . " - " . $id . ".torrent",
                             'hash' => $id
@@ -148,17 +139,18 @@ class ScanRss
                 }
             }
         }
-        return $ret;
+
+        return $this->parsed;
     }
 
     public function getHistory()
     {
-
+        $this->history = [];
         if (is_file($this->settings['file_indexes']) && file_exists($this->settings['file_indexes']) && is_readable($this->settings['file_indexes'])) {
-            return file($this->settings['file_indexes'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        } else {
-            return [];
+            $this->history = file($this->settings['file_indexes'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         }
+
+        return $this->history;
     }
 
     public function saveHistory($data)
@@ -169,10 +161,10 @@ class ScanRss
 
             // Writing To File
             file_put_contents($this->settings['log_file_name'], $form, FILE_APPEND);
-            return 1;
+            return true;
         } else {
             file_put_contents($this->settings['file_indexes'], $data . "\r\n", FILE_APPEND);
-            return 1;
+            return true;
         }
     }
 
@@ -190,7 +182,7 @@ class ScanRss
                     curl_close($ch);
 
                     if (!$ret) {
-                        return 0;
+                        $this->status = 0;
                     } else {
                         $file = fopen($this->settings['file_location'] . $item['file'], "w");
                         fputs($file, $ret);
@@ -203,18 +195,16 @@ class ScanRss
 
                         $this->saveHistory(array('file' => $item['file']));
                         $this->saveHistory((string)$item['hash']);
-
-
                     }
-
                 }
-
             }
-            return 1;
+            $this->status = 1;
         } elseif ($this->parsed > 0) {
-            return 2;
+            $this->status = 2;
         } else {
-            return 0;
+            $this->status = 0;
         }
+
+        return $this->status;
     }
 }
